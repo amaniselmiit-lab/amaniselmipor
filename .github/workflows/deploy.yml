@@ -1,0 +1,49 @@
+name: Deploy portfolio to GitHub Pages
+
+# Publie le portfolio d'Amani Selmi sur GitHub Pages.
+# Site 100 % statique (HTML/CSS/JS) servi à la racine du dépôt.
+#
+# Prérequis (à faire UNE fois) : Settings → Pages → Source : « GitHub Actions ».
+# Ensuite, chaque push sur « main » republie le site automatiquement.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble site
+        run: |
+          rm -rf _site && mkdir -p _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' ./ _site/
+          touch _site/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
