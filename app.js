@@ -46,6 +46,26 @@
   }
   function $(sel) { return document.querySelector(sel); }
 
+  // Génère un monogramme propre à partir d'un nom d'organisation.
+  var STOPWORDS = { de: 1, du: 1, des: 1, la: 1, le: 1, les: 1, of: 1, the: 1, and: 1, "et": 1 };
+  function monogram(name) {
+    var words = String(name || "").replace(/[^0-9A-Za-zÀ-ÿ]+/g, " ").trim().split(/\s+/);
+    for (var i = 0; i < words.length; i++) {
+      if (/^[A-Z][A-Z0-9]{1,4}$/.test(words[i])) return words[i]; // acronyme : EFC, ONP, BTS, ISET…
+    }
+    var sig = words.filter(function (w) { return !STOPWORDS[w.toLowerCase()]; });
+    if (sig.length <= 1) return (sig[0] || words[0] || "•").slice(0, 3).toUpperCase();
+    return sig.slice(0, 3).map(function (w) { return w[0]; }).join("").toUpperCase();
+  }
+  // Logo d'un item de timeline : vraie image si `logo` fournie, sinon monogramme.
+  function logoHtml(item, name) {
+    if (item.logo) {
+      return '<img class="tl-item__logo" src="' + esc(item.logo) + '" alt="' + esc(name) +
+        '" loading="lazy">';
+    }
+    return '<span class="tl-item__logo tl-item__logo--mono">' + esc(item.logoText || monogram(name)) + "</span>";
+  }
+
   /* ---------- Navigation ------------------------------------------------- */
   var NAV_ITEMS = ["about", "skills", "experience", "projects", "certifications", "education", "contact"];
 
@@ -117,12 +137,15 @@
       var bullets = (t(x.bullets) || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("");
       var tags = (x.tags || []).map(function (tg) { return '<span class="tag">' + esc(tg) + "</span>"; }).join("");
       var badge = x.badge ? ' <span class="tl-item__badge">' + esc(t(x.badge)) + "</span>" : "";
-      return '<article class="tl-item reveal">' +
+      return '<article class="tl-item tl-item--logo reveal">' +
+        logoHtml(x, x.org) +
+        '<div class="tl-item__main">' +
         '<div class="tl-item__top"><div><span class="tl-item__role">' + esc(t(x.role)) +
         '</span> <span class="tl-item__org">· ' + esc(x.org) + "</span>" + badge + "</div>" +
         '<span class="tl-item__period">' + esc(t(x.period)) + "</span></div>" +
         '<ul class="tl-item__bullets">' + bullets + "</ul>" +
-        '<div class="tl-item__tags">' + tags + "</div></article>";
+        '<div class="tl-item__tags">' + tags + "</div>" +
+        "</div></article>";
     }).join("");
   }
 
@@ -163,10 +186,13 @@
   /* ---------- Formation + langues ---------------------------------------- */
   function renderEducation() {
     $("#educationList").innerHTML = (P.education || []).map(function (e) {
-      return '<article class="tl-item reveal">' +
+      return '<article class="tl-item tl-item--logo reveal">' +
+        logoHtml(e, e.school) +
+        '<div class="tl-item__main">' +
         '<div class="tl-item__top"><span class="tl-item__role">' + esc(t(e.degree)) + "</span>" +
         '<span class="tl-item__period">' + esc(e.period) + "</span></div>" +
-        '<div class="tl-item__org">' + esc(e.school) + "</div></article>";
+        '<div class="tl-item__org">' + esc(e.school) + "</div>" +
+        "</div></article>";
     }).join("");
 
     $("#langsList").innerHTML = (P.languages || []).map(function (l) {

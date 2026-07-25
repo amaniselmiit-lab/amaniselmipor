@@ -255,6 +255,18 @@ ul { list-style: none; }
   transition: transform .25s, border-color .25s, box-shadow .25s; overflow: hidden;
 }
 .tl-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent-grad); }
+.tl-item--logo { display: flex; align-items: flex-start; gap: 1rem; }
+.tl-item__main { flex: 1; min-width: 0; }
+.tl-item__logo {
+  flex-shrink: 0; width: 52px; height: 52px; border-radius: 13px;
+  object-fit: contain; background: #fff; border: 1px solid var(--border);
+  padding: 6px; box-shadow: var(--shadow-sm);
+}
+.tl-item__logo--mono {
+  display: grid; place-items: center; padding: 0; background: var(--surface-2);
+  color: var(--accent); font-family: var(--font-display); font-weight: 700;
+  font-size: .92rem; letter-spacing: .3px;
+}
 .tl-item:hover { transform: translateX(4px); border-color: var(--accent); box-shadow: var(--shadow); }
 .tl-item__top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 1rem; align-items: baseline; }
 .tl-item__role { font-size: 1.12rem; font-weight: 600; }

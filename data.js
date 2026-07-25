@@ -50,9 +50,8 @@ window.PORTFOLIO = {
 
     // CV téléchargeables (les fichiers sont dans /assets/cv/)
     cvs: [
-      { label: { fr: "CV — AI Engineer (EN)", en: "Résumé — AI Engineer (EN)" }, file: "assets/cv/Amani_Selmi_CV_AI_Engineer_EN.pdf" },
-      { label: { fr: "CV — Consultante Fonctionnelle (FR)", en: "CV — Functional Consultant (FR)" }, file: "assets/cv/Amani_Selmi_CV_Consultante_Fonctionnelle_FR.pdf" },
-      { label: { fr: "CV — Webmaster (FR)", en: "CV — Webmaster (FR)" }, file: "assets/cv/Amani_Selmi_CV_Webmaster_FR.pdf" },
+      { label: { fr: "CV (Français)", en: "Résumé (French)" }, file: "assets/cv/Amani_Selmi_CV_FR.pdf" },
+      { label: { fr: "CV (English)", en: "Résumé (English)" }, file: "assets/cv/Amani_Selmi_CV_EN.pdf" },
     ],
   },
 
@@ -192,6 +191,7 @@ window.PORTFOLIO = {
     {
       role: { fr: "Stagiaire développeuse front-end", en: "Front-End Developer Intern" },
       org: "MPSoft Manager",
+      logoText: "MP",
       period: { fr: "Juil. 2022 — Août 2022", en: "Jul 2022 — Aug 2022" },
       bullets: {
         fr: [
