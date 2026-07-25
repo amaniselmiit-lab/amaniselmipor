@@ -330,6 +330,43 @@ ul { list-style: none; }
 .cert__name { font-weight: 600; font-size: .96rem; line-height: 1.35; }
 .cert__meta { font-size: .82rem; color: var(--text-mute); margin-top: .15rem; }
 .cert__meta b { color: var(--accent); font-weight: 600; }
+.cert__body { flex: 1; min-width: 0; }
+.cert--clickable { cursor: pointer; }
+.cert__view {
+  flex-shrink: 0; display: grid; place-items: center; width: 32px; height: 32px;
+  border-radius: 9px; color: var(--text-mute); transition: .2s;
+}
+.cert__view svg { width: 17px; height: 17px; }
+.cert--clickable:hover .cert__view { color: var(--accent); background: var(--surface-2); }
+
+/* Visionneuse de certificat */
+.cert-modal { position: fixed; inset: 0; z-index: 200; display: none; }
+.cert-modal.is-open { display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; }
+.cert-modal__backdrop { position: absolute; inset: 0; background: rgba(9, 11, 24, .74); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.cert-modal__panel {
+  position: relative; display: flex; flex-direction: column; width: min(960px, 96vw); height: min(94vh, 1200px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden;
+}
+.cert-modal__bar { display: flex; align-items: center; gap: .7rem; padding: .7rem .8rem .7rem 1rem; border-bottom: 1px solid var(--border); }
+.cert-modal__title { flex: 1; min-width: 0; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cert-modal__open {
+  display: inline-flex; align-items: center; gap: .4rem; font-size: .84rem; font-weight: 600; color: var(--accent);
+  padding: .45rem .8rem; border-radius: 9px; border: 1px solid var(--border); white-space: nowrap;
+}
+.cert-modal__open svg { width: 15px; height: 15px; }
+.cert-modal__open:hover { background: var(--surface-2); border-color: var(--accent); }
+.cert-modal__close {
+  flex-shrink: 0; width: 36px; height: 36px; border: 1px solid var(--border); background: var(--surface);
+  border-radius: 9px; cursor: pointer; font-size: 1rem; color: var(--text); transition: .2s;
+}
+.cert-modal__close:hover { border-color: var(--accent); color: var(--accent); }
+.cert-modal__viewer { flex: 1; background: #eef0f7; }
+.cert-modal__viewer iframe { width: 100%; height: 100%; border: 0; display: block; }
+@media (max-width: 560px) {
+  .cert-modal.is-open { padding: 0; }
+  .cert-modal__panel { width: 100vw; height: 100vh; border-radius: 0; border: 0; }
+  .cert-modal__open span { display: none; }
+}
 
 /* --- Formation + langues -------------------------------------------------- */
 .edu-columns { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(2rem, 5vw, 3.5rem); }

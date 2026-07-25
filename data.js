@@ -275,11 +275,13 @@ window.PORTFOLIO = {
   ],
 
   /* --- Certifications ------------------------------------------------------ */
+  // « file » = certificat réel (cliquable). Sans « file », la carte reste informative.
   certifications: [
-    { name: "Building Agentic AI Applications with LLMs", issuer: "NVIDIA", year: "2026", emoji: "🤖" },
-    { name: "Generative AI with Diffusion Models", issuer: "NVIDIA", year: "2026", emoji: "✨" },
+    { name: "Building Agentic AI Applications with Large Language Models", issuer: "NVIDIA", year: "2026", emoji: "🤖", file: "assets/certs/NVIDIA_Building_Agentic_AI_LLMs.pdf" },
+    { name: "Generative AI with Diffusion Models", issuer: "NVIDIA", year: "2026", emoji: "✨", file: "assets/certs/NVIDIA_Generative_AI_Diffusion_Models.pdf" },
     { name: "Fundamentals of Deep Learning", issuer: "NVIDIA", year: "2026", emoji: "🧠" },
-    { name: "Business Analysis Fundamentals with AI", issuer: "BA-Learning", year: "2025", emoji: "📊" },
+    { name: { fr: "AI Night Challenge — 5ᵉ édition (Team « AI Generation »)", en: "AI Night Challenge — 5th Edition (Team \"AI Generation\")" }, issuer: "ARSII", year: "2026", emoji: "🏆", file: "assets/certs/ARSII_AI_Night_Challenge_2026.pdf" },
+    { name: "Business Analysis Fundamentals with AI", issuer: "BA-Learning", year: "2025", emoji: "📊", file: "assets/certs/Business_Analysis_Fundamentals_AI.pdf" },
     { name: "Azure AI Fundamentals", issuer: "Microsoft", year: "2024", emoji: "☁️" },
     { name: "Machine Learning & AI", issuer: "GDG", year: "2023", emoji: "⚙️" },
     { name: "Linux Fundamentals", issuer: "Securinets", year: "2023", emoji: "🐧" },
@@ -334,7 +336,7 @@ window.PORTFOLIO = {
       projects:       { fr: "Projets", en: "Projects" },
       projectsSub:    { fr: "Une sélection de réalisations en IA et développement.", en: "A selection of AI and development work." },
       certifications: { fr: "Certifications", en: "Certifications" },
-      certificationsSub: { fr: "Formations certifiantes.", en: "Certified training." },
+      certificationsSub: { fr: "Formations certifiantes — cliquez sur un certificat pour l'afficher.", en: "Certified training — click a certificate to view it." },
       education:      { fr: "Formation", en: "Education" },
       languages:      { fr: "Langues", en: "Languages" },
       contact:        { fr: "Travaillons ensemble", en: "Let's work together" },

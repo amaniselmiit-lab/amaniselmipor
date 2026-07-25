@@ -26,7 +26,8 @@
     external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>',
     code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>',
     phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
   };
 
   /* ---------- Helpers ---------------------------------------------------- */
@@ -176,11 +177,63 @@
   /* ---------- Certifications --------------------------------------------- */
   function renderCerts() {
     $("#certsGrid").innerHTML = (P.certifications || []).map(function (c) {
-      return '<article class="cert reveal">' +
-        '<span class="cert__icon">' + esc(c.emoji || "🎓") + "</span>" +
-        '<div><div class="cert__name">' + esc(c.name) + "</div>" +
-        '<div class="cert__meta"><b>' + esc(c.issuer) + "</b> · " + esc(c.year) + "</div></div></article>";
+      var inner = '<span class="cert__icon">' + esc(c.emoji || "🎓") + "</span>" +
+        '<div class="cert__body"><div class="cert__name">' + esc(t(c.name)) + "</div>" +
+        '<div class="cert__meta"><b>' + esc(c.issuer) + "</b> · " + esc(c.year) + "</div></div>";
+      if (c.file) {
+        inner += '<span class="cert__view" aria-hidden="true">' + ICONS.eye + "</span>";
+        return '<a class="cert cert--clickable reveal" href="' + esc(c.file) + '" target="_blank" rel="noopener"' +
+          ' data-cert-file="' + esc(c.file) + '" data-cert-name="' + esc(t(c.name)) + '">' + inner + "</a>";
+      }
+      return '<article class="cert reveal">' + inner + "</article>";
     }).join("");
+  }
+
+  /* ---------- Visionneuse de certificat (modale) ------------------------- */
+  function initCertModal() {
+    var modal = document.createElement("div");
+    modal.className = "cert-modal";
+    modal.setAttribute("aria-hidden", "true");
+    modal.innerHTML =
+      '<div class="cert-modal__backdrop" data-close></div>' +
+      '<div class="cert-modal__panel" role="dialog" aria-modal="true">' +
+        '<div class="cert-modal__bar">' +
+          '<span class="cert-modal__title"></span>' +
+          '<a class="cert-modal__open" target="_blank" rel="noopener">' + ICONS.external +
+            "<span>" + esc(t({ fr: "Ouvrir", en: "Open" })) + "</span></a>" +
+          '<button class="cert-modal__close" data-close type="button" aria-label="' +
+            esc(t({ fr: "Fermer", en: "Close" })) + '">✕</button>' +
+        "</div>" +
+        '<div class="cert-modal__viewer"><iframe title="Certificat" src="about:blank"></iframe></div>' +
+      "</div>";
+    document.body.appendChild(modal);
+
+    var iframe = modal.querySelector("iframe");
+    var titleEl = modal.querySelector(".cert-modal__title");
+    var openEl = modal.querySelector(".cert-modal__open");
+
+    function open(file, name) {
+      titleEl.textContent = name || "Certificat";
+      openEl.href = file;
+      iframe.src = file;
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+    function close() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      iframe.src = "about:blank";
+      document.body.style.overflow = "";
+    }
+    modal.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    $("#certsGrid").addEventListener("click", function (e) {
+      var a = e.target.closest(".cert--clickable");
+      if (!a) return;
+      e.preventDefault();
+      open(a.getAttribute("data-cert-file"), a.getAttribute("data-cert-name"));
+    });
   }
 
   /* ---------- Formation + langues ---------------------------------------- */
@@ -383,6 +436,7 @@
     initLang();
     renderAll();
     initMenu();
+    initCertModal();
     initScrollFx();
     startTyping();
   });
