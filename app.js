@@ -116,9 +116,10 @@
     $("#timeline").innerHTML = (P.experience || []).map(function (x) {
       var bullets = (t(x.bullets) || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("");
       var tags = (x.tags || []).map(function (tg) { return '<span class="tag">' + esc(tg) + "</span>"; }).join("");
+      var badge = x.badge ? ' <span class="tl-item__badge">' + esc(t(x.badge)) + "</span>" : "";
       return '<article class="tl-item reveal">' +
         '<div class="tl-item__top"><div><span class="tl-item__role">' + esc(t(x.role)) +
-        '</span> <span class="tl-item__org">· ' + esc(x.org) + "</span></div>" +
+        '</span> <span class="tl-item__org">· ' + esc(x.org) + "</span>" + badge + "</div>" +
         '<span class="tl-item__period">' + esc(t(x.period)) + "</span></div>" +
         '<ul class="tl-item__bullets">' + bullets + "</ul>" +
         '<div class="tl-item__tags">' + tags + "</div></article>";

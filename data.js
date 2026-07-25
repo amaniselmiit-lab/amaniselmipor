@@ -106,8 +106,9 @@ window.PORTFOLIO = {
   /* --- Expérience / Experience -------------------------------------------- */
   experience: [
     {
-      role: { fr: "Stagiaire IA / Data Science — Projet de fin d'études", en: "AI / Data Science Intern — Final-Year Project" },
+      role: { fr: "Stagiaire IA / Data Science", en: "AI / Data Science Intern" },
       org: "LIMTIC",
+      badge: { fr: "Stage PFE — Master", en: "Final-year project — Master's" },
       period: { fr: "Fév. 2026 — Juin 2026", en: "Feb 2026 — Jun 2026" },
       bullets: {
         fr: [
@@ -156,6 +157,7 @@ window.PORTFOLIO = {
     {
       role: { fr: "Stagiaire développeuse full-stack", en: "Full-Stack Developer Intern" },
       org: "ONP",
+      badge: { fr: "Stage PFE — Licence", en: "Final-year project — Bachelor's" },
       period: { fr: "Fév. 2024 — Mai 2024", en: "Feb 2024 — May 2024" },
       bullets: {
         fr: [
