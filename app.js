@@ -259,7 +259,7 @@
   function renderContact() {
     var pr = P.profile;
     var cards = [
-      { icon: ICONS.mail, label: "Email", value: pr.email, href: "https://mail.google.com/mail/?view=cm&fs=1&to=" + pr.email },
+      { icon: ICONS.mail, label: "Email", value: pr.email, href: "https://mail.google.com/mail/?view=cm&fs=1&to=" + pr.email, ext: true },
       { icon: ICONS.phone, label: t(ui("labels.phone")), value: pr.phone, href: "tel:" + pr.phone.replace(/\s/g, "") },
       { icon: ICONS.linkedin, label: "LinkedIn", value: "ameni-selmi", href: pr.linkedin, ext: true },
       { icon: ICONS.pin, label: t(ui("labels.location")), value: t(pr.location), href: null }
