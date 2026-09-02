@@ -1,363 +1,443 @@
 /* =============================================================================
-   PORTFOLIO — DONNÉES / DATA
-   -----------------------------------------------------------------------------
-   👉 C'est le SEUL fichier à modifier pour mettre à jour ton portfolio.
-      This is the ONLY file you need to edit to update your portfolio.
-
-   • Les textes qui existent en 2 langues sont écrits ainsi : { fr: "...", en: "..." }
-   • Pour changer une info : modifie la valeur, enregistre, pousse sur GitHub.
-   • Tu peux ajouter/supprimer des éléments dans les listes [ ... ].
+   PORTFOLIO — LOGIQUE / APP
+   Génère le contenu depuis data.js et gère : langue FR/EN, thème clair/sombre,
+   menu mobile, effet machine à écrire, révélations au scroll, navigation active.
    ========================================================================== */
+(function () {
+  "use strict";
 
-window.PORTFOLIO = {
+  var P = window.PORTFOLIO;
+  if (!P) { console.error("data.js introuvable"); return; }
 
-  /* --- Réglages généraux / General settings ------------------------------- */
-  settings: {
-    defaultLang: "fr",     // langue par défaut : "fr" ou "en"
-    defaultTheme: "auto",  // thème par défaut : "auto" | "light" | "dark"
-    accent: "#6d5efc",     // couleur d'accent principale
-    accent2: "#00d4c7",    // couleur d'accent secondaire (dégradés)
-  },
+  // Active le mode « JS » : autorise les animations d'apparition (sans JS, tout reste visible).
+  document.documentElement.classList.add("js");
 
-  /* --- Profil / Profile ---------------------------------------------------- */
-  profile: {
-    name: "Amani Selmi",
-    initials: "AS",
-    title: { fr: "AI Engineer", en: "AI Engineer" },
+  var LS_LANG = "portfolio_lang";
+  var LS_THEME = "portfolio_theme";
 
-    // Titres qui défilent dans le hero (effet machine à écrire)
-    roles: {
-      fr: ["AI Engineer", "Data Scientist", "Développeuse Full-Stack", "Formatrice IT"],
-      en: ["AI Engineer", "Data Scientist", "Full-Stack Developer", "IT Trainer"],
-    },
+  var lang = localStorage.getItem(LS_LANG) || P.settings.defaultLang || "fr";
 
-    tagline: {
-      fr: "Je transforme les données et les modèles d'IA en applications concrètes.",
-      en: "I turn data and AI models into applications that ship.",
-    },
+  /* ---------- Icônes SVG ------------------------------------------------- */
+  var ICONS = {
+    linkedin: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>',
+    github: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58l-.01-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.62-5.48 5.92.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>',
+    external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>',
+    code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>',
+    phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+  };
 
-    summary: {
-      fr: "Diplômée d'un Master en Business Analytics & Data Science, je conçois, entraîne et évalue des modèles de deep learning en Python (TensorFlow/Keras, scikit-learn), de la préparation des données à l'évaluation du modèle. Certifiée NVIDIA en deep learning, IA générative et applications agentiques basées sur les LLM, avec un profil full-stack (Angular, Spring Boot) pour bâtir les API et systèmes web dans lesquels les modèles d'IA s'intègrent. J'aime transformer des modèles de recherche en applications prêtes pour la production.",
-      en: "Master's graduate in Business Analytics & Data Science, I design, train and evaluate deep learning models in Python (TensorFlow/Keras, scikit-learn) — from data preparation to model assessment. NVIDIA-certified in deep learning, generative AI and LLM-based agentic applications, with a full-stack background (Angular, Spring Boot) to build the APIs and web systems AI models plug into. I love turning research-grade models into production-ready applications.",
-    },
+  /* ---------- Helpers ---------------------------------------------------- */
+  function t(v) {
+    if (v && typeof v === "object" && !Array.isArray(v) && ("fr" in v || "en" in v)) {
+      return v[lang] != null ? v[lang] : (v.fr != null ? v.fr : v.en);
+    }
+    return v;
+  }
+  function ui(path) {
+    return path.split(".").reduce(function (o, k) { return o && o[k]; }, P.ui);
+  }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function $(sel) { return document.querySelector(sel); }
 
-    // Coordonnées / Contact
-    email: "amani.selmi.it@gmail.com",
-    phone: "+216 55 484 364",
-    location: { fr: "Laouina, Tunis, Tunisie", en: "Laouina, Tunis, Tunisia" },
-    linkedin: "https://www.linkedin.com/in/ameni-selmi-21bba2191",
-    github: "https://github.com/amaniselmiit-lab",
+  // Génère un monogramme propre à partir d'un nom d'organisation.
+  var STOPWORDS = { de: 1, du: 1, des: 1, la: 1, le: 1, les: 1, of: 1, the: 1, and: 1, "et": 1 };
+  function monogram(name) {
+    var words = String(name || "").replace(/[^0-9A-Za-zÀ-ÿ]+/g, " ").trim().split(/\s+/);
+    for (var i = 0; i < words.length; i++) {
+      if (/^[A-Z][A-Z0-9]{1,4}$/.test(words[i])) return words[i]; // acronyme : EFC, ONP, BTS, ISET…
+    }
+    var sig = words.filter(function (w) { return !STOPWORDS[w.toLowerCase()]; });
+    if (sig.length <= 1) return (sig[0] || words[0] || "•").slice(0, 3).toUpperCase();
+    return sig.slice(0, 3).map(function (w) { return w[0]; }).join("").toUpperCase();
+  }
+  // Logo d'un item de timeline : vraie image si `logo` fournie, sinon monogramme.
+  function logoHtml(item, name) {
+    if (item.logo) {
+      return '<img class="tl-item__logo" src="' + esc(item.logo) + '" alt="' + esc(name) +
+        '" loading="lazy">';
+    }
+    return '<span class="tl-item__logo tl-item__logo--mono">' + esc(item.logoText || monogram(name)) + "</span>";
+  }
 
-    // CV téléchargeables (les fichiers sont dans /assets/cv/)
-    cvs: [
-      { label: { fr: "CV (Français)", en: "Résumé (French)" }, file: "assets/cv/Amani_Selmi_CV_FR.pdf" },
-      { label: { fr: "CV (English)", en: "Résumé (English)" }, file: "assets/cv/Amani_Selmi_CV_EN.pdf" },
-    ],
-  },
+  /* ---------- Navigation ------------------------------------------------- */
+  var NAV_ITEMS = ["about", "skills", "experience", "projects", "certifications", "education", "contact"];
 
-  /* --- Chiffres clés / Key stats ------------------------------------------ */
-  stats: [
-    { value: "7",     label: { fr: "Certifications", en: "Certifications" } },
-    { value: "6+",    label: { fr: "Projets IA & Dev", en: "AI & Dev projects" } },
-    { value: "5",     label: { fr: "Langues", en: "Languages" } },
-    { value: "Bac+5", label: { fr: "Master Data Science", en: "MSc Data Science" } },
-  ],
+  function renderNav() {
+    $("#navLinks").innerHTML = NAV_ITEMS.map(function (id) {
+      var target = id === "education" ? "education" : id;
+      return '<a href="#' + target + '" data-nav="' + target + '">' + esc(t(ui("nav." + id))) + "</a>";
+    }).join("");
+  }
 
-  /* --- Compétences / Skills ------------------------------------------------ */
-  skills: [
-    {
-      group: { fr: "Machine Learning & Deep Learning", en: "Machine Learning & Deep Learning" },
-      icon: "🧠",
-      items: ["Python", "TensorFlow / Keras", "scikit-learn", "CNN", "U-Net (CBAM, CoordConv)", "Entraînement & évaluation", "K-Means"],
-    },
-    {
-      group: { fr: "IA Générative & LLM", en: "Generative AI & LLMs" },
-      icon: "✨",
-      items: ["Applications agentiques (LLM)", "Prompt engineering", "Modèles de diffusion", "Outils de dev assistés par IA"],
-    },
-    {
-      group: { fr: "Données & Business Intelligence", en: "Data & Business Intelligence" },
-      icon: "📊",
-      items: ["Pandas", "NumPy", "SQL", "Prétraitement des données", "Power BI", "Dashboards & KPI"],
-    },
-    {
-      group: { fr: "Full-Stack & Intégration", en: "Full-Stack & Integration" },
-      icon: "🧩",
-      items: ["Angular", "TypeScript", "React", "Spring Boot (Java)", "API REST", "OAuth2"],
-    },
-    {
-      group: { fr: "Web & CMS", en: "Web & CMS" },
-      icon: "🌐",
-      items: ["WordPress", "PHP", "HTML5", "CSS3", "Bootstrap", "JavaScript", "Responsive design"],
-    },
-    {
-      group: { fr: "Bases de données & Cloud", en: "Databases & Cloud" },
-      icon: "🗄️",
-      items: ["PostgreSQL", "MySQL", "SQL Server", "MongoDB", "Microsoft Azure"],
-    },
-    {
-      group: { fr: "Outils & Méthodes", en: "Tools & Methods" },
-      icon: "🛠️",
-      items: ["Git / GitHub", "Docker", "Jira", "Agile", "Documentation technique"],
-    },
-  ],
+  /* ---------- Hero ------------------------------------------------------- */
+  function renderHero() {
+    var pr = P.profile;
+    $("#heroGreeting").textContent = t(ui("hero.greeting"));
+    $("#heroTagline").textContent = t(pr.tagline);
+    $("#ctaContact").textContent = t(ui("hero.ctaContact"));
+    $("#ctaProjects").textContent = t(ui("hero.ctaProjects"));
 
-  /* --- Expérience / Experience -------------------------------------------- */
-  experience: [
-    {
-      role: { fr: "Stagiaire IA / Data Science", en: "AI / Data Science Intern" },
-      org: "LIMTIC",
-      badge: { fr: "Stage PFE — Master", en: "Final-year project — Master's" },
-      period: { fr: "Fév. 2026 — Juin 2026", en: "Feb 2026 — Jun 2026" },
-      bullets: {
-        fr: [
-          "Conçu et entraîné un ensemble de 4 modèles U-Net (attention CBAM, CoordConv) pour l'évaluation automatisée du positionnement en mammographie.",
-          "Construit le pipeline complet : prétraitement des images médicales, préparation du jeu de données, entraînement et évaluation (Python, TensorFlow/Keras).",
-          "Itéré sur l'architecture et les hyperparamètres selon les métriques d'évaluation.",
-        ],
-        en: [
-          "Designed and trained an ensemble of 4 U-Net models (CBAM attention, CoordConv) for automated mammography positioning assessment.",
-          "Built the full pipeline: medical image preprocessing, dataset preparation, model training and evaluation (Python, TensorFlow/Keras).",
-          "Iterated on architecture and hyperparameters based on evaluation metrics.",
-        ],
-      },
-      tags: ["Deep Learning", "U-Net", "TensorFlow/Keras", "Medical Imaging", "Python"],
-    },
-    {
-      role: { fr: "Formatrice en gestion informatique", en: "IT Trainer" },
-      org: "EFC — Executive Training School",
-      period: { fr: "Oct. 2025 — Juil. 2026", en: "Oct 2025 — Jul 2026" },
-      bullets: {
-        fr: [
-          "Conçu et animé des formations en développement logiciel et administration des données, avec des projets pratiques.",
-          "Vulgarisé des concepts techniques pour des publics non techniques et rédigé une documentation claire.",
-        ],
-        en: [
-          "Designed and delivered software development and data administration training with hands-on projects.",
-          "Explained technical concepts to non-technical audiences and produced clear documentation.",
-        ],
-      },
-      tags: ["Formation", "Pédagogie", "Documentation"],
-    },
-    {
-      role: { fr: "Formatrice en informatique & robotique", en: "IT & Robotics Trainer" },
-      org: "Taybah Education Group",
-      period: { fr: "Jan. 2025 — Juin 2025", en: "Jan 2025 — Jun 2025" },
-      bullets: {
-        fr: [
-          "Enseigné les fondamentaux de la programmation et de la robotique via des supports adaptés à chaque niveau.",
-        ],
-        en: [
-          "Taught programming fundamentals and robotics concepts through tailored materials for each level.",
-        ],
-      },
-      tags: ["Programmation", "Robotique", "Formation"],
-    },
-    {
-      role: { fr: "Stagiaire développeuse full-stack", en: "Full-Stack Developer Intern" },
-      org: "ONP",
-      badge: { fr: "Stage PFE — Licence", en: "Final-year project — Bachelor's" },
-      period: { fr: "Fév. 2024 — Mai 2024", en: "Feb 2024 — May 2024" },
-      bullets: {
-        fr: [
-          "Développé une application web d'administration de l'Active Directory (comptes, groupes, unités d'organisation) avec Angular et Spring Boot.",
-          "Conçu les API REST, modélisé les données (MySQL) et sécurisé l'accès par OAuth2.",
-          "Suivi des tâches et gestion des tickets via Jira.",
-        ],
-        en: [
-          "Built a web application for Active Directory administration (accounts, groups, organizational units) with Angular and Spring Boot.",
-          "Developed REST APIs, designed the data model (MySQL) and secured access with OAuth2.",
-          "Tracked tasks and tickets with Jira.",
-        ],
-      },
-      tags: ["Angular", "Spring Boot", "MySQL", "OAuth2", "REST API"],
-    },
-    {
-      role: { fr: "Stagiaire développeuse full-stack", en: "Full-Stack Developer Intern" },
-      org: "BTS Bank",
-      period: { fr: "Juil. 2023 — Août 2023", en: "Jul 2023 — Aug 2023" },
-      bullets: {
-        fr: [
-          "Développé une application de gestion des transactions rejetées.",
-          "Investigué les anomalies et exécuté des requêtes SQL correctives avec vérification de l'intégrité des données.",
-        ],
-        en: [
-          "Developed an application to manage rejected transactions.",
-          "Investigated anomalies and ran corrective SQL queries with data-integrity checks.",
-        ],
-      },
-      tags: ["SQL", "Java", "Debugging"],
-    },
-    {
-      role: { fr: "Stagiaire développeuse front-end", en: "Front-End Developer Intern" },
-      org: "MPSoft Manager",
-      logoText: "MP",
-      period: { fr: "Juil. 2022 — Août 2022", en: "Jul 2022 — Aug 2022" },
-      bullets: {
-        fr: [
-          "Développé une application intranet responsive (HTML, CSS, Bootstrap).",
-        ],
-        en: [
-          "Developed a responsive intranet application (HTML, CSS, Bootstrap).",
-        ],
-      },
-      tags: ["HTML", "CSS", "Bootstrap"],
-    },
-  ],
+    var socials = [
+      { icon: ICONS.linkedin, label: "LinkedIn", url: pr.linkedin },
+      { icon: ICONS.github, label: "GitHub", url: pr.github },
+      { icon: ICONS.mail, label: t(ui("labels.emailMe")), url: "https://mail.google.com/mail/?view=cm&fs=1&to=" + pr.email }
+    ];
+    var socialHtml = socials.map(function (s) {
+      return '<a class="social-link" href="' + esc(s.url) + '"' +
+        (s.url.indexOf("mailto:") === 0 ? "" : ' target="_blank" rel="noopener"') +
+        ">" + s.icon + "<span>" + esc(s.label) + "</span></a>";
+    }).join("");
 
-  /* --- Projets / Projects -------------------------------------------------- */
-  projects: [
-    {
-      featured: true,
-      emoji: "🩺",
-      title: { fr: "Évaluation du positionnement en mammographie", en: "Mammography Positioning Assessment" },
-      description: {
-        fr: "Ensemble de 4 modèles U-Net (attention CBAM, CoordConv) pour évaluer automatiquement le positionnement en mammographie. Pipeline complet : prétraitement d'images médicales, préparation du jeu de données, entraînement et évaluation. Projet de fin d'études (LIMTIC).",
-        en: "Ensemble of 4 U-Net models (CBAM attention, CoordConv) to automatically assess mammography positioning. Full pipeline: medical image preprocessing, dataset preparation, training and evaluation. Final-year project (LIMTIC).",
-      },
-      tags: ["Deep Learning", "U-Net", "TensorFlow/Keras", "Medical Imaging", "Python"],
-      links: [],
-    },
-    {
-      featured: true,
-      emoji: "🇮🇹",
-      title: { fr: "Impara l'Italiano — apprendre l'italien (A1 → C2)", en: "Impara l'Italiano — learn Italian (A1 → C2)" },
-      description: {
-        fr: "Application web complète pour apprendre l'italien de A1 à C2 : leçons structurées, 7 types d'exercices, examens type PLIDA et un tuteur IA conversationnel (« Marco »). Sans backend, progression sauvegardée localement. React 19, TypeScript, Vite.",
-        en: "Complete web app to learn Italian from A1 to C2: structured lessons, 7 exercise types, PLIDA-style exams and an AI conversational tutor (\"Marco\"). Backend-free, progress saved locally. React 19, TypeScript, Vite.",
-      },
-      tags: ["React", "TypeScript", "Vite", "EdTech", "LLM"],
-      links: [
-        { type: "demo", url: "./italiano/", label: { fr: "Démo live", en: "Live demo" } },
-        { type: "code", url: "https://github.com/amaniselmiit-lab/italien", label: { fr: "Code", en: "Code" } },
-      ],
-    },
-    {
-      emoji: "🧠",
-      title: { fr: "Détection de tumeurs cérébrales (Deep Learning)", en: "Brain Tumor Detection (Deep Learning)" },
-      description: {
-        fr: "Modèle CNN entraîné sur des IRM cérébrales pour détecter la présence de tumeurs. Préparation des images, entraînement et évaluation des performances.",
-        en: "CNN model trained on brain MRI scans to detect the presence of tumors. Image preparation, training and performance evaluation.",
-      },
-      tags: ["Deep Learning", "CNN", "Healthcare AI", "Python"],
-      links: [],
-    },
-    {
-      emoji: "🗂️",
-      title: { fr: "Administration Active Directory", en: "Active Directory Administration" },
-      description: {
-        fr: "Application web full-stack pour administrer un Active Directory (comptes, groupes, unités d'organisation). API REST Spring Boot, front Angular, modèle de données MySQL, accès sécurisé par OAuth2.",
-        en: "Full-stack web application to administer an Active Directory (accounts, groups, organizational units). Spring Boot REST APIs, Angular front end, MySQL data model, OAuth2-secured access.",
-      },
-      tags: ["Angular", "Spring Boot", "MySQL", "OAuth2"],
-      links: [],
-    },
-    {
-      emoji: "🖼️",
-      title: { fr: "Classification d'images non supervisée", en: "Unsupervised Image Classification" },
-      description: {
-        fr: "Clustering K-Means pour regrouper des images non étiquetées par similarité visuelle (data mining).",
-        en: "K-Means clustering to group unlabeled images by visual similarity (data mining).",
-      },
-      tags: ["K-Means", "Unsupervised ML", "scikit-learn", "Python"],
-      links: [],
-    },
-    {
-      emoji: "📈",
-      title: { fr: "Tableau de bord de suivi des KPI", en: "KPI Monitoring Dashboard" },
-      description: {
-        fr: "Dashboard interactif Power BI de suivi des indicateurs clés de performance, avec visualisations et filtres.",
-        en: "Interactive Power BI dashboard tracking key performance indicators, with visuals and filters.",
-      },
-      tags: ["Power BI", "Business Intelligence", "Data Viz"],
-      links: [],
-    },
-  ],
+    var cvHtml = (pr.cvs || []).map(function (cv) {
+      return '<a class="social-link" href="' + esc(cv.file) + '" download>' + ICONS.download +
+        "<span>" + esc(t(cv.label)) + "</span></a>";
+    }).join("");
 
-  /* --- Certifications ------------------------------------------------------ */
-  // « file » = certificat réel (cliquable). Sans « file », la carte reste informative.
-  certifications: [
-    { name: "Building Agentic AI Applications with Large Language Models", issuer: "NVIDIA", year: "2026", emoji: "🤖", file: "assets/certs/NVIDIA_Building_Agentic_AI_LLMs.pdf" },
-    { name: "Generative AI with Diffusion Models", issuer: "NVIDIA", year: "2026", emoji: "✨", file: "assets/certs/NVIDIA_Generative_AI_Diffusion_Models.pdf" },
-    { name: "Fundamentals of Deep Learning", issuer: "NVIDIA", year: "2026", emoji: "🧠" },
-    { name: { fr: "AI Night Challenge — 5ᵉ édition (Team « AI Generation »)", en: "AI Night Challenge — 5th Edition (Team \"AI Generation\")" }, issuer: "ARSII", year: "2026", emoji: "🏆", file: "assets/certs/ARSII_AI_Night_Challenge_2026.pdf" },
-    { name: "Business Analysis Fundamentals with AI", issuer: "BA-Learning", year: "2025", emoji: "📊", file: "assets/certs/Business_Analysis_Fundamentals_AI.pdf" },
-    { name: "Azure AI Fundamentals", issuer: "Microsoft", year: "2024", emoji: "☁️" },
-    { name: "Machine Learning & AI", issuer: "GDG", year: "2023", emoji: "⚙️" },
-    { name: "Linux Fundamentals", issuer: "Securinets", year: "2023", emoji: "🐧" },
-  ],
+    $("#heroSocials").innerHTML = socialHtml +
+      (cvHtml ? '<span style="flex-basis:100%;height:0"></span>' + cvHtml : "");
 
-  /* --- Formation / Education ----------------------------------------------- */
-  education: [
-    {
-      degree: { fr: "Master — Business Analytics & Data Science", en: "Master's — Business Analytics & Data Science" },
-      school: "Université Virtuelle de Tunis",
-      period: "2024 — 2026",
-    },
-    {
-      degree: { fr: "Licence — Développement des Systèmes d'Information", en: "Bachelor's — Information Systems Development" },
-      school: "ISET Zaghouan",
-      period: "2021 — 2024",
-    },
-  ],
+    $("#heroStats").innerHTML = (P.stats || []).map(function (s) {
+      return '<li class="stat"><div class="stat__value">' + esc(s.value) +
+        '</div><div class="stat__label">' + esc(t(s.label)) + "</div></li>";
+    }).join("");
+  }
 
-  /* --- Langues / Languages ------------------------------------------------- */
-  languages: [
-    { name: { fr: "Arabe", en: "Arabic" },  level: { fr: "Langue maternelle", en: "Native" }, pct: 100 },
-    { name: { fr: "Français", en: "French" }, level: { fr: "Courant", en: "Fluent" },        pct: 95 },
-    { name: { fr: "Anglais", en: "English" }, level: { fr: "Courant", en: "Fluent" },        pct: 90 },
-    { name: { fr: "Italien", en: "Italian" }, level: { fr: "B2", en: "B2" },                 pct: 65 },
-    { name: { fr: "Allemand", en: "German" }, level: { fr: "A2", en: "A2" },                 pct: 30 },
-  ],
+  /* ---------- Sections statiques (data-ui) ------------------------------- */
+  function renderStaticUI() {
+    document.querySelectorAll("[data-ui]").forEach(function (node) {
+      node.textContent = t(ui(node.getAttribute("data-ui")));
+    });
+    $("#aboutText").textContent = t(P.profile.summary);
+    $("#footerText").textContent = t(ui("footer.builtWith"));
+    $("#footerRights").textContent = t(ui("footer.rights"));
+    $("#footerYear").textContent = new Date().getFullYear();
+  }
 
-  /* --- Textes d'interface / UI strings ------------------------------------ */
-  ui: {
-    nav: {
-      about:          { fr: "À propos", en: "About" },
-      skills:         { fr: "Compétences", en: "Skills" },
-      experience:     { fr: "Expérience", en: "Experience" },
-      projects:       { fr: "Projets", en: "Projects" },
-      certifications: { fr: "Certifications", en: "Certifications" },
-      education:      { fr: "Formation", en: "Education" },
-      contact:        { fr: "Contact", en: "Contact" },
-    },
-    hero: {
-      greeting: { fr: "Bonjour, je suis", en: "Hi, I'm" },
-      ctaContact: { fr: "Me contacter", en: "Get in touch" },
-      ctaProjects: { fr: "Voir mes projets", en: "See my projects" },
-      cvHeading: { fr: "Télécharger le CV", en: "Download résumé" },
-    },
-    sections: {
-      about:          { fr: "À propos", en: "About me" },
-      skills:         { fr: "Compétences", en: "Skills" },
-      skillsSub:      { fr: "Ma boîte à outils technique.", en: "My technical toolbox." },
-      experience:     { fr: "Expérience", en: "Experience" },
-      experienceSub:  { fr: "Mon parcours professionnel.", en: "My professional journey." },
-      projects:       { fr: "Projets", en: "Projects" },
-      projectsSub:    { fr: "Une sélection de réalisations en IA et développement.", en: "A selection of AI and development work." },
-      certifications: { fr: "Certifications", en: "Certifications" },
-      certificationsSub: { fr: "Formations certifiantes — cliquez sur un certificat pour l'afficher.", en: "Certified training — click a certificate to view it." },
-      education:      { fr: "Formation", en: "Education" },
-      languages:      { fr: "Langues", en: "Languages" },
-      contact:        { fr: "Travaillons ensemble", en: "Let's work together" },
-      contactSub:     { fr: "Une opportunité, une question ? Écrivez-moi, je réponds vite.", en: "An opportunity, a question? Drop me a line — I reply fast." },
-    },
-    labels: {
-      featured:     { fr: "Projet phare", en: "Featured" },
-      liveDemo:     { fr: "Démo live", en: "Live demo" },
-      code:         { fr: "Code", en: "Code" },
-      viewProject:  { fr: "Voir le projet", en: "View project" },
-      emailMe:      { fr: "M'écrire", en: "Email me" },
-      phone:        { fr: "Téléphone", en: "Phone" },
-      location:     { fr: "Localisation", en: "Location" },
-      themeLight:   { fr: "Thème clair", en: "Light theme" },
-      themeDark:    { fr: "Thème sombre", en: "Dark theme" },
-      menu:         { fr: "Menu", en: "Menu" },
-      backToTop:    { fr: "Haut de page", en: "Back to top" },
-    },
-    footer: {
-      builtWith: { fr: "Conçu et développé par Amani Selmi.", en: "Designed & built by Amani Selmi." },
-      rights: { fr: "Tous droits réservés.", en: "All rights reserved." },
-    },
-  },
-};
+  /* ---------- Compétences ------------------------------------------------ */
+  function renderSkills() {
+    $("#skillsGrid").innerHTML = (P.skills || []).map(function (g) {
+      var tags = g.items.map(function (i) { return '<span class="tag">' + esc(i) + "</span>"; }).join("");
+      return '<article class="skill-card reveal">' +
+        '<div class="skill-card__head"><span class="skill-card__icon">' + esc(g.icon || "•") +
+        '</span><h3 class="skill-card__title">' + esc(t(g.group)) + "</h3></div>" +
+        '<div class="skill-card__tags">' + tags + "</div></article>";
+    }).join("");
+  }
+
+  /* ---------- Expérience ------------------------------------------------- */
+  function renderExperience() {
+    $("#timeline").innerHTML = (P.experience || []).map(function (x) {
+      var bullets = (t(x.bullets) || []).map(function (b) { return "<li>" + esc(b) + "</li>"; }).join("");
+      var tags = (x.tags || []).map(function (tg) { return '<span class="tag">' + esc(tg) + "</span>"; }).join("");
+      var badge = x.badge ? ' <span class="tl-item__badge">' + esc(t(x.badge)) + "</span>" : "";
+      return '<article class="tl-item tl-item--logo reveal">' +
+        logoHtml(x, x.org) +
+        '<div class="tl-item__main">' +
+        '<div class="tl-item__top"><div><span class="tl-item__role">' + esc(t(x.role)) +
+        '</span> <span class="tl-item__org">· ' + esc(x.org) + "</span>" + badge + "</div>" +
+        '<span class="tl-item__period">' + esc(t(x.period)) + "</span></div>" +
+        '<ul class="tl-item__bullets">' + bullets + "</ul>" +
+        '<div class="tl-item__tags">' + tags + "</div>" +
+        "</div></article>";
+    }).join("");
+  }
+
+  /* ---------- Projets ---------------------------------------------------- */
+  function renderProjects() {
+    $("#projectsGrid").innerHTML = (P.projects || []).map(function (p) {
+      var tags = (p.tags || []).map(function (tg) { return '<span class="tag">' + esc(tg) + "</span>"; }).join("");
+      var links = (p.links || []).map(function (l) {
+        var icon = l.type === "code" ? ICONS.code : ICONS.external;
+        var isExternal = l.url.indexOf("http") === 0;
+        return '<a class="project__link" href="' + esc(l.url) + '"' +
+          (isExternal ? ' target="_blank" rel="noopener"' : "") + ">" + icon +
+          "<span>" + esc(t(l.label)) + "</span></a>";
+      }).join("");
+      var badge = p.featured
+        ? '<span class="project__featured-badge">' + esc(t(ui("labels.featured"))) + "</span>" : "";
+      return '<article class="project reveal' + (p.featured ? " is-featured" : "") + '">' +
+        '<div class="project__banner">' + badge + "<span>" + esc(p.emoji || "🚀") + "</span></div>" +
+        '<div class="project__body">' +
+        '<h3 class="project__title">' + esc(t(p.title)) + "</h3>" +
+        '<p class="project__desc">' + esc(t(p.description)) + "</p>" +
+        '<div class="project__tags">' + tags + "</div>" +
+        (links ? '<div class="project__links">' + links + "</div>" : "") +
+        "</div></article>";
+    }).join("");
+  }
+
+  /* ---------- Certifications --------------------------------------------- */
+  function renderCerts() {
+    $("#certsGrid").innerHTML = (P.certifications || []).map(function (c) {
+      var inner = '<span class="cert__icon">' + esc(c.emoji || "🎓") + "</span>" +
+        '<div class="cert__body"><div class="cert__name">' + esc(t(c.name)) + "</div>" +
+        '<div class="cert__meta"><b>' + esc(c.issuer) + "</b> · " + esc(c.year) + "</div></div>";
+      if (c.file) {
+        inner += '<span class="cert__view" aria-hidden="true">' + ICONS.eye + "</span>";
+        return '<a class="cert cert--clickable reveal" href="' + esc(c.file) + '" target="_blank" rel="noopener"' +
+          ' data-cert-file="' + esc(c.file) + '" data-cert-name="' + esc(t(c.name)) + '">' + inner + "</a>";
+      }
+      return '<article class="cert reveal">' + inner + "</article>";
+    }).join("");
+  }
+
+  /* ---------- Visionneuse de certificat (modale) ------------------------- */
+  function initCertModal() {
+    var modal = document.createElement("div");
+    modal.className = "cert-modal";
+    modal.setAttribute("aria-hidden", "true");
+    modal.innerHTML =
+      '<div class="cert-modal__backdrop" data-close></div>' +
+      '<div class="cert-modal__panel" role="dialog" aria-modal="true">' +
+        '<div class="cert-modal__bar">' +
+          '<span class="cert-modal__title"></span>' +
+          '<a class="cert-modal__open" target="_blank" rel="noopener">' + ICONS.external +
+            "<span>" + esc(t({ fr: "Ouvrir", en: "Open" })) + "</span></a>" +
+          '<button class="cert-modal__close" data-close type="button" aria-label="' +
+            esc(t({ fr: "Fermer", en: "Close" })) + '">✕</button>' +
+        "</div>" +
+        '<div class="cert-modal__viewer"><iframe title="Certificat" src="about:blank"></iframe></div>' +
+      "</div>";
+    document.body.appendChild(modal);
+
+    var iframe = modal.querySelector("iframe");
+    var titleEl = modal.querySelector(".cert-modal__title");
+    var openEl = modal.querySelector(".cert-modal__open");
+
+    function open(file, name) {
+      titleEl.textContent = name || "Certificat";
+      openEl.href = file;
+      iframe.src = file;
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+    function close() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      iframe.src = "about:blank";
+      document.body.style.overflow = "";
+    }
+    modal.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    $("#certsGrid").addEventListener("click", function (e) {
+      var a = e.target.closest(".cert--clickable");
+      if (!a) return;
+      e.preventDefault();
+      open(a.getAttribute("data-cert-file"), a.getAttribute("data-cert-name"));
+    });
+  }
+
+  /* ---------- Formation + langues ---------------------------------------- */
+  function renderEducation() {
+    $("#educationList").innerHTML = (P.education || []).map(function (e) {
+      return '<article class="tl-item tl-item--logo reveal">' +
+        logoHtml(e, e.school) +
+        '<div class="tl-item__main">' +
+        '<div class="tl-item__top"><span class="tl-item__role">' + esc(t(e.degree)) + "</span>" +
+        '<span class="tl-item__period">' + esc(e.period) + "</span></div>" +
+        '<div class="tl-item__org">' + esc(e.school) + "</div>" +
+        "</div></article>";
+    }).join("");
+
+    $("#langsList").innerHTML = (P.languages || []).map(function (l) {
+      return '<div class="lang reveal"><div class="lang__top"><span class="lang__name">' +
+        esc(t(l.name)) + '</span><span class="lang__level">' + esc(t(l.level)) + "</span></div>" +
+        '<div class="lang__bar"><span class="lang__fill" data-pct="' + (l.pct || 0) + '"></span></div></div>';
+    }).join("");
+  }
+
+  /* ---------- Contact ---------------------------------------------------- */
+  function renderContact() {
+    var pr = P.profile;
+    var cards = [
+      { icon: ICONS.mail, label: "Email", value: pr.email, href: "https://mail.google.com/mail/?view=cm&fs=1&to=" + pr.email },
+      { icon: ICONS.phone, label: t(ui("labels.phone")), value: pr.phone, href: "tel:" + pr.phone.replace(/\s/g, "") },
+      { icon: ICONS.linkedin, label: "LinkedIn", value: "ameni-selmi", href: pr.linkedin, ext: true },
+      { icon: ICONS.pin, label: t(ui("labels.location")), value: t(pr.location), href: null }
+    ];
+    $("#contactCards").innerHTML = cards.map(function (c) {
+      var inner = '<span class="contact-card__icon">' + c.icon + "</span>" +
+        '<span class="contact-card__label">' + esc(c.label) + "</span>" +
+        '<span class="contact-card__value">' + esc(c.value) + "</span>";
+      if (c.href) {
+        return '<a class="contact-card reveal" href="' + esc(c.href) + '"' +
+          (c.ext ? ' target="_blank" rel="noopener"' : "") + ">" + inner + "</a>";
+      }
+      return '<div class="contact-card reveal">' + inner + "</div>";
+    }).join("");
+  }
+
+  /* ---------- Effet machine à écrire ------------------------------------- */
+  var typer = { timer: null };
+  function startTyping() {
+    clearTimeout(typer.timer);
+    var elm = $("#heroRole");
+    var roles = t(P.profile.roles) || [P.profile.title ? t(P.profile.title) : ""];
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      elm.textContent = roles[0]; return;
+    }
+    var ri = 0, ci = 0, deleting = false;
+    function tick() {
+      var word = roles[ri];
+      elm.textContent = word.slice(0, ci);
+      if (!deleting && ci < word.length) { ci++; typer.timer = setTimeout(tick, 90); }
+      else if (!deleting && ci === word.length) { deleting = true; typer.timer = setTimeout(tick, 1600); }
+      else if (deleting && ci > 0) { ci--; typer.timer = setTimeout(tick, 45); }
+      else { deleting = false; ri = (ri + 1) % roles.length; typer.timer = setTimeout(tick, 350); }
+    }
+    tick();
+  }
+
+  /* ---------- Thème ------------------------------------------------------ */
+  function applyTheme(theme) {
+    if (theme === "light" || theme === "dark") {
+      document.documentElement.setAttribute("data-theme", theme);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  }
+  function currentTheme() {
+    var stored = localStorage.getItem(LS_THEME);
+    if (stored) return stored;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function initTheme() {
+    var stored = localStorage.getItem(LS_THEME);
+    applyTheme(stored || P.settings.defaultTheme || "auto");
+    $("#themeToggle").addEventListener("click", function () {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      localStorage.setItem(LS_THEME, next);
+      applyTheme(next);
+    });
+  }
+
+  /* ---------- Langue ----------------------------------------------------- */
+  function updateLangButtons() {
+    document.querySelectorAll(".lang-switch__btn").forEach(function (b) {
+      b.classList.toggle("is-active", b.getAttribute("data-lang") === lang);
+      b.setAttribute("aria-pressed", b.getAttribute("data-lang") === lang);
+    });
+  }
+  function renderAll() {
+    renderNav(); renderHero(); renderStaticUI(); renderSkills();
+    renderExperience(); renderProjects(); renderCerts();
+    renderEducation(); renderContact();
+    observeReveals(); observeNav();
+  }
+  function setLang(next) {
+    lang = next;
+    localStorage.setItem(LS_LANG, lang);
+    document.documentElement.setAttribute("lang", lang);
+    updateLangButtons();
+    renderAll();
+    startTyping();
+  }
+  function initLang() {
+    document.querySelectorAll(".lang-switch__btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var next = b.getAttribute("data-lang");
+        if (next !== lang) setLang(next);
+      });
+    });
+    document.documentElement.setAttribute("lang", lang);
+    updateLangButtons();
+  }
+
+  /* ---------- Menu mobile ------------------------------------------------ */
+  function initMenu() {
+    var toggle = $("#menuToggle"), links = $("#navLinks");
+    toggle.addEventListener("click", function () {
+      var open = links.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", open);
+    });
+    links.addEventListener("click", function (e) {
+      if (e.target.closest("a")) {
+        links.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  /* ---------- Révélations au scroll -------------------------------------- */
+  var revealObs = null;
+  function revealAll() {
+    document.querySelectorAll(".reveal").forEach(function (n) {
+      n.classList.add("is-in");
+      var bar = n.querySelector(".lang__fill");
+      if (bar) bar.style.width = bar.getAttribute("data-pct") + "%";
+    });
+  }
+  function observeReveals() {
+    // Filet de sécurité : navigateurs sans IntersectionObserver → tout afficher.
+    if (!("IntersectionObserver" in window)) { revealAll(); return; }
+    if (revealObs) revealObs.disconnect();
+    revealObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add("is-in");
+          var bar = en.target.querySelector(".lang__fill");
+          if (bar) bar.style.width = bar.getAttribute("data-pct") + "%";
+          revealObs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    document.querySelectorAll(".reveal").forEach(function (n) { revealObs.observe(n); });
+  }
+
+  /* ---------- Navigation active ------------------------------------------ */
+  var navObs = null;
+  function observeNav() {
+    if (navObs) navObs.disconnect();
+    var map = {};
+    document.querySelectorAll("[data-nav]").forEach(function (a) { map[a.getAttribute("data-nav")] = a; });
+    navObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          document.querySelectorAll("[data-nav]").forEach(function (a) { a.classList.remove("is-active"); });
+          var link = map[en.target.id];
+          if (link) link.classList.add("is-active");
+        }
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    NAV_ITEMS.forEach(function (id) {
+      var sec = document.getElementById(id === "education" ? "education" : id);
+      if (sec) navObs.observe(sec);
+    });
+  }
+
+  /* ---------- Effets de scroll (nav, bouton haut) ------------------------ */
+  function initScrollFx() {
+    var nav = $("#nav"), toTop = $("#toTop");
+    function onScroll() {
+      var y = window.scrollY;
+      nav.classList.toggle("is-scrolled", y > 8);
+      toTop.classList.toggle("is-visible", y > 600);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* ---------- Init ------------------------------------------------------- */
+  document.addEventListener("DOMContentLoaded", function () {
+    if (P.settings) {
+      if (P.settings.accent) document.documentElement.style.setProperty("--accent", P.settings.accent);
+      if (P.settings.accent2) document.documentElement.style.setProperty("--accent-2", P.settings.accent2);
+    }
+    initTheme();
+    initLang();
+    renderAll();
+    initMenu();
+    initCertModal();
+    initScrollFx();
+    startTyping();
+  });
+})();
