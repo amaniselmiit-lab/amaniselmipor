@@ -42,7 +42,7 @@ window.PORTFOLIO = {
     },
 
     // Coordonnées / Contact
-    email: "ameni.selmi.info@gmail.com",
+    email: "amani.selmi.it@gmail.com",
     phone: "+216 55 484 364",
     location: { fr: "Laouina, Tunis, Tunisie", en: "Laouina, Tunis, Tunisia" },
     linkedin: "https://www.linkedin.com/in/ameni-selmi-21bba2191",
